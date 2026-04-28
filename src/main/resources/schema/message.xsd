@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           targetNamespace="http://messaging.com/schema"
+           xmlns:tns="http://messaging.com/schema"
+           elementFormDefault="qualified">
+
+    <!-- Корневой элемент -->
+    <xs:element name="message" type="tns:MessageType"/>
+
+    <!-- Message -->
+    <xs:complexType name="MessageType">
+        <xs:sequence>
+            <xs:element name="header" type="tns:HeaderType"/>
+
+            <!-- ВАЖНО: request или response на уровне message -->
+            <xs:choice>
+                <xs:element name="request" type="tns:RequestType"/>
+                <xs:element name="response" type="tns:ResponseType"/>
+            </xs:choice>
+
+        </xs:sequence>
+    </xs:complexType>
+
+    <!-- Header -->
+    <xs:complexType name="HeaderType">
+        <xs:attribute name="time" type="xs:dateTime" use="required"/>
+    </xs:complexType>
+
+    <!-- Request -->
+    <xs:complexType name="RequestType">
+        <xs:sequence>
+            <xs:element name="user" type="xs:string"/>
+            <xs:element name="text" type="xs:string"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <!-- Response -->
+    <xs:complexType name="ResponseType">
+        <xs:sequence>
+            <xs:element name="status" type="tns:StatusType"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <!-- Status -->
+    <xs:complexType name="StatusType">
+        <xs:sequence>
+            <xs:element name="code" type="xs:int"/>
+            <xs:element name="reason" type="xs:string"/>
+        </xs:sequence>
+    </xs:complexType>
+
+</xs:schema>
