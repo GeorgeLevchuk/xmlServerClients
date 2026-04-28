@@ -8,4 +8,4 @@
 mvn clean compile
 ```
 
-После запустите сервер XmlServer.java и клиенты XmlClient.java в IDEA
+После запустите сервер XmlServer.java и клиентов XmlClient.java в IDEA
