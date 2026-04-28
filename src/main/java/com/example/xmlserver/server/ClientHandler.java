@@ -1,12 +1,19 @@
 package com.example.xmlserver.server;
 
 import com.example.xmlserver.service.MessageProcessor;
+
 import java.io.*;
 import java.net.Socket;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class ClientHandler implements Runnable {
 
     private Socket socket;
+
+    // 🔥 пул потоков (общий для всех клиентов)
+    private static final ExecutorService pool =
+            Executors.newFixedThreadPool(10);
 
     public ClientHandler(Socket socket) {
         this.socket = socket;
@@ -23,16 +30,28 @@ public class ClientHandler implements Runnable {
 
             String xml;
 
-            // 👇 ВАЖНО: читаем пока клиент не закроет соединение
             while ((xml = in.readLine()) != null) {
 
                 System.out.println("Received: " + xml);
 
-                String response = MessageProcessor.process(xml);
+                String message = xml;
 
-                out.write(response);
-                out.newLine();
-                out.flush();
+                // 🔥 ВАЖНО: передаём в другой поток
+                pool.submit(() -> {
+                    try {
+                        String response = MessageProcessor.process(message);
+
+                        // ⚠ синхронизация записи в сокет
+                        synchronized (out) {
+                            out.write(response);
+                            out.newLine();
+                            out.flush();
+                        }
+
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                });
             }
 
         } catch (Exception e) {

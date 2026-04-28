@@ -5,6 +5,7 @@ import java.sql.*;
 public class Database {
 
     private static final String URL = "jdbc:sqlite:messages.db";
+    private static final Object DB_LOCK = new Object();
 
     static {
         init();
@@ -31,19 +32,22 @@ public class Database {
 
     public static void save(String user, String text, int code) {
 
-        String sql = "INSERT INTO messages(user, text, code) VALUES (?, ?, ?)";
+        synchronized (DB_LOCK) {
 
-        try (Connection conn = DriverManager.getConnection(URL);
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+            String sql = "INSERT INTO messages(user, text, code) VALUES (?, ?, ?)";
 
-            ps.setString(1, user);
-            ps.setString(2, text);
-            ps.setInt(3, code);
+            try (Connection conn = DriverManager.getConnection(URL);
+                 PreparedStatement ps = conn.prepareStatement(sql)) {
 
-            ps.executeUpdate();
+                ps.setString(1, user);
+                ps.setString(2, text);
+                ps.setInt(3, code);
 
-        } catch (Exception e) {
-            e.printStackTrace();
+                ps.executeUpdate();
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
 }
