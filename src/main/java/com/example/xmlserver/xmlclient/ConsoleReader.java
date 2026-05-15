@@ -4,7 +4,6 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 
 public class ConsoleReader implements Runnable {
-
     private final ClientConnection connection;
 
     public ConsoleReader(ClientConnection connection) {
@@ -17,30 +16,25 @@ public class ConsoleReader implements Runnable {
                      new BufferedReader(new InputStreamReader(System.in))) {
 
             String input;
-            String user = System.getProperty("user.name"); // 🔥 имя пользователя ОС
+            String user = System.getProperty("user.name");
 
             while ((input = console.readLine()) != null) {
-
                 input = input.trim();
 
-                // 👉 команда -h (выход)
                 if ("-h".equalsIgnoreCase(input)) {
-                    System.out.println("👋 Завершение работы...");
+                    System.out.println("Завершение работы");
                     connection.stop();
                     break;
                 }
 
-                // 👉 команда -m <text>
-                if (input.startsWith("-m ")) {
-
+                if (input.toLowerCase().startsWith("-m ")) {
                     String text = input.substring(3).trim();
 
                     if (text.isEmpty()) {
-                        System.out.println("⚠ Введите текст сообщения");
+                        System.out.println("Введите текст сообщения");
                         continue;
                     }
 
-                    // 🔥 формируем XML
                     String xml = "<message  xmlns=\"http://messaging.com/schema\">" +
                             "<request>" +
                             "<user>" + user + "</user>" +
@@ -52,15 +46,14 @@ public class ConsoleReader implements Runnable {
                     continue;
                 }
 
-                // 👉 неизвестная команда
-                System.out.println("❌ Неизвестная команда");
+                System.out.println("Неизвестная команда");
                 System.out.println("Используй:");
                 System.out.println("  -m <text>  → отправить сообщение");
                 System.out.println("  -h         → выход");
             }
 
         } catch (Exception e) {
-            System.out.println("❌ Ошибка чтения консоли");
+            System.out.println("Error read console" + e.getMessage());
         }
     }
 }
