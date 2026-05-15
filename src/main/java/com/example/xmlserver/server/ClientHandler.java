@@ -9,11 +9,12 @@ import java.util.concurrent.Executors;
 
 public class ClientHandler implements Runnable {
 
-    private Socket socket;
+    private final Socket socket;
 
-    // 🔥 пул потоков (общий для всех клиентов)
     private static final ExecutorService pool =
             Executors.newFixedThreadPool(10);
+
+    private static final String MESSAGE_DELIMITER = "###END###";
 
     public ClientHandler(Socket socket) {
         this.socket = socket;
@@ -27,35 +28,41 @@ public class ClientHandler implements Runnable {
                 BufferedWriter out = new BufferedWriter(
                         new OutputStreamWriter(socket.getOutputStream()))
         ) {
+            StringBuilder messageBuffer = new StringBuilder();
+            String line;
 
-            String xml;
+            while ((line = in.readLine()) != null) {
+                if (line.equals(MESSAGE_DELIMITER)) {
+                    String xml = messageBuffer.toString().trim();
+                    messageBuffer.setLength(0);
 
-            while ((xml = in.readLine()) != null) {
+                    if (!xml.isEmpty()) {
+                        System.out.println("Received XML:\n" + xml);
 
-                System.out.println("Received: " + xml);
+                        final String message = xml;
+                        pool.submit(() -> {
+                            try {
+                                String response = MessageProcessor.process(message);
 
-                String message = xml;
-
-                // 🔥 ВАЖНО: передаём в другой поток
-                pool.submit(() -> {
-                    try {
-                        String response = MessageProcessor.process(message);
-
-                        // ⚠ синхронизация записи в сокет
-                        synchronized (out) {
-                            out.write(response);
-                            out.newLine();
-                            out.flush();
-                        }
-
-                    } catch (Exception e) {
-                        e.printStackTrace();
+                                synchronized (out) {
+                                    out.write(response);
+                                    out.newLine();
+                                    out.write(MESSAGE_DELIMITER);
+                                    out.newLine();
+                                    out.flush();
+                                }
+                            } catch (Exception e) {
+                                System.out.println("Exception write response" + e.getMessage());
+                            }
+                        });
                     }
-                });
+                } else {
+                    messageBuffer.append(line).append("\n");
+                }
             }
 
         } catch (Exception e) {
-            e.printStackTrace();
+            System.out.println("Exception write response" + e.getMessage());
         }
     }
 }

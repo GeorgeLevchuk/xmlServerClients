@@ -37,19 +37,32 @@ public class ClientConnection {
             writer.newLine();
             writer.flush();
         } catch (IOException e) {
-            System.out.println("❌ Error sending message");
+            System.out.println("Error sending message");
             stop();
         }
     }
 
     public void readFromServer() {
         try {
+            BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            StringBuilder messageBuffer = new StringBuilder();
             String line;
-            while (running && (line = reader.readLine()) != null) {
-                System.out.println("📥 Server: " + line);
+
+            while ((line = in.readLine()) != null) {
+                if (line.equals("###END###")) {
+                    String response = messageBuffer.toString().trim();
+                    messageBuffer.setLength(0);
+
+                    if (!response.isEmpty()) {
+                        System.out.println("Ответ от сервера:\n" + response);
+                    }
+                } else {
+                    messageBuffer.append(line).append("\n");
+                }
             }
-        } catch (IOException e) {
-            System.out.println("❌ Connection lost");
+
+        } catch (Exception e) {
+            System.out.println("Connection closed");
         } finally {
             stop();
         }
@@ -73,7 +86,7 @@ public class ClientConnection {
             if (socket != null && !socket.isClosed()) socket.close();
         } catch (Exception ignored) {}
 
-        System.out.println("🔌 Disconnected");
+        System.out.println("Disconnected");
     }
 
     public boolean tryConnect() {
