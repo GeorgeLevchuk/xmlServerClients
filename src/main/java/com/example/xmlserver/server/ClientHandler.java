@@ -1,19 +1,14 @@
 package com.example.xmlserver.server;
 
 import com.example.xmlserver.service.MessageProcessor;
-
 import java.io.*;
 import java.net.Socket;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class ClientHandler implements Runnable {
-
     private final Socket socket;
-
-    private static final ExecutorService pool =
-            Executors.newFixedThreadPool(10);
-
+    private static final ExecutorService pool = Executors.newFixedThreadPool(10);
     private static final String MESSAGE_DELIMITER = "###END###";
 
     public ClientHandler(Socket socket) {
@@ -22,11 +17,8 @@ public class ClientHandler implements Runnable {
 
     @Override
     public void run() {
-        try (
-                BufferedReader in = new BufferedReader(
-                        new InputStreamReader(socket.getInputStream()));
-                BufferedWriter out = new BufferedWriter(
-                        new OutputStreamWriter(socket.getOutputStream()))
+        try (BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+             BufferedWriter out = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()))
         ) {
             StringBuilder messageBuffer = new StringBuilder();
             String line;
