@@ -9,7 +9,6 @@ public class Database {
     private static final Logger LOGGER = Logger.getLogger(Database.class.getName());
     private static final String URL = "jdbc:sqlite:messages.db";
     private static final Object DB_LOCK = new Object();
-
     private static PreparedStatement preparedStatement;
 
     static {
@@ -47,7 +46,6 @@ public class Database {
                 preparedStatement.setString(2,text);
                 preparedStatement.setInt(3,code);
                 preparedStatement.executeUpdate();
-
             } catch (Exception e) {
                 LOGGER.log(Level.SEVERE, "Failed to save message", e);
             }
